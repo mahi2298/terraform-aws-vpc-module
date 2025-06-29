@@ -60,7 +60,7 @@ resource "aws_subnet" "private" {
 }
 
 #creating Database private subnets in 2 availability zone
-resource "aws_subnet" "Database" {
+resource "aws_subnet" "database" {
     count = length(var.database_private_subnet_cidr)
     vpc_id = aws_vpc.main.id
     cidr_block = var.database_private_subnet_cidr[count.index]

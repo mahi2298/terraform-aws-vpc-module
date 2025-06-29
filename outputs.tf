@@ -9,3 +9,7 @@ output "public_subnet_id" {
 output "private_subnet_id" {
     value = aws_subnet.private[*].id # getting the vpcid from vpc.tf
 }
+
+output "database_subnet_id" {
+    value = aws_subnet.database[*].id # getting the vpcid from vpc.tf
+}
