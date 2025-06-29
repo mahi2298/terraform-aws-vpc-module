@@ -59,6 +59,21 @@ resource "aws_subnet" "private" {
     )
 }
 
+#creating Database private subnets in 2 availability zone
+resource "aws_subnet" "Database" {
+    count = length(var.database_private_subnet_cidr)
+    vpc_id = aws_vpc.main.id
+    cidr_block = var.database_private_subnet_cidr[count.index]
+    availability_zone = local.availability_zone_names[count.index]
+    tags = merge(
+      var.database_subnet_tags,
+      local.common_tags,
+      {
+          Name = "${var.project}-${var.environment}-Database-${local.availability_zone_names[count.index]}"
+      }
+    )
+}
+
 # creating Elastic ip for nat gateway
 resource "aws_eip" "main" {
   domain = "vpc"
@@ -109,6 +124,18 @@ resource "aws_route_table" "private" {
     )
 }
 
+# creating the database route table
+resource "aws_route_table" "database" {
+  vpc_id = aws_vpc.main.id
+  tags = merge(
+      var.database_route_table_tags,
+      local.common_tags,
+        {
+            Name = "${var.project}-${var.environment}-database"
+        }
+    )
+}
+
 #assign Internet gateway to public route table bcoz it is exposed to internet
 
 resource "aws_route" "public" {
@@ -123,7 +150,13 @@ resource "aws_route" "public" {
 resource "aws_route" "private" {
     route_table_id = aws_route_table.private.id # getting the private route table id
     destination_cidr_block = "0.0.0.0/0" # NAT gateway id
-    gateway_id = aws_nat_gateway.main.id # NAT gateway name
+    nat_gateway_id = aws_nat_gateway.main.id # NAT gateway name
+}
+
+resource "aws_route" "database" {
+    route_table_id = aws_route_table.database.id # getting the private route table id
+    destination_cidr_block = "0.0.0.0/0" # NAT gateway id
+    nat_gateway_id = aws_nat_gateway.main.id # NAT gateway name
 }
 
 # Assigning public subnet to public route table
@@ -134,8 +167,15 @@ resource "aws_route_table_association" "public" {
 }
 
 #assigning private subnet to private route table
-resource "aws_route_table_association" "private" {
+resource "aws_route_table_association" "private" { 
     count = length(var.private_subnet_cidr)
     subnet_id = aws_subnet.private[count.index].id # assigning private subnet to private route table
     route_table_id = aws_route_table.private.id  # getting the private route table id
+}
+
+
+resource "aws_route_table_association" "database" { 
+    count = length(var.database_private_subnet_cidr)
+    subnet_id = aws_subnet.database[count.index].id # assigning private subnet to private route table
+    route_table_id = aws_route_table.database.id  # getting the private route table id
 }

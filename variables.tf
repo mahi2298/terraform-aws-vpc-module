@@ -19,6 +19,10 @@ variable "private_subnet_cidr" {
     type = list(string)
 }
 
+variable "database_private_subnet_cidr" {
+    type = list(string)
+}
+
 variable "vpc_tags" {
     type = map(string)
     default = {}
@@ -41,6 +45,13 @@ variable "private_subnet_tags" {
     default = {}
 }
 
+
+variable "database_subnet_tags" {
+    type = map(string)
+    default = {}
+}
+
+
 variable "eip_tags" {
     type = map(string)
     default = {}
@@ -57,6 +68,12 @@ variable "public_route_table_tags" {
 }
 
 variable "private_route_table_tags" {
+    type = map(string)
+    default = {}
+}
+
+
+variable "database_route_table_tags" {
     type = map(string)
     default = {}
 }
